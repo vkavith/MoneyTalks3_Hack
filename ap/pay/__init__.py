@@ -25,7 +25,7 @@ from ap.shared import (
 )
 
 from .increase import (
-    SANDBOX_HOST,
+    FAILED_TRANSFER_STATES,
     IncreaseClient,
     IncreaseError,
     SandboxRequired,
@@ -173,22 +173,38 @@ def _check_guardrails(invoice: Invoice, ctx: PipelineContext) -> Vendor:
             guardrail="limit",
         )
     if _provider() == "increase":
-        base = os.environ.get("INCREASE_BASE_URL", "")
-        if not base or SANDBOX_HOST != _host_of(base):
+        try:
+            IncreaseClient.require_sandbox(os.environ.get("INCREASE_BASE_URL", ""))
+        except SandboxRequired as exc:
             raise PaymentRefused(
-                f"{invoice.id}: refusing to pay, INCREASE_BASE_URL is not the sandbox",
-                guardrail="sandbox",
-            )
+                f"{invoice.id}: refusing to pay, {exc}", guardrail="sandbox"
+            ) from exc
+        if invoice.payment is not None:
+            _confirm_returned_with_provider(invoice, invoice.payment)
     return vendor
 
 
-def _host_of(url: str) -> str | None:
-    import httpx
+def _confirm_returned_with_provider(invoice: Invoice, payment: Payment) -> None:
+    """A re-send is allowed only if Increase itself says the first transfer failed.
 
+    Our own record saying "returned" is not enough: ask the provider, so a bad
+    statement line can never talk ``pay()`` into a second transfer.
+    """
+    if payment.provider != "increase":
+        raise PaymentRefused(
+            f"{invoice.id}: refusing to re-pay a {payment.provider} payment through increase",
+            guardrail="double_payment",
+        )
+    client = IncreaseClient.from_env()
     try:
-        return httpx.URL(url).host
-    except Exception:  # noqa: BLE001 - any unparsable URL is simply not the sandbox
-        return None
+        state = client.get_transfer(payment.transfer_id).get("status")
+    finally:
+        client.close()
+    if state not in FAILED_TRANSFER_STATES:
+        raise PaymentRefused(
+            f"{invoice.id}: refusing to pay twice, transfer {payment.transfer_id} is {state}",
+            guardrail="double_payment",
+        )
 
 
 def pay(invoice: Invoice, ctx: PipelineContext) -> Invoice:
@@ -305,14 +321,20 @@ def reconcile(invoice: Invoice, ctx: PipelineContext) -> Invoice:
 
     txns = ctx.bank_txns
     current = payment
+    provider_state: str | None = None
     if payment.provider == "increase":
         client = IncreaseClient.from_env()
         try:
             transfer = client.get_transfer(payment.transfer_id)
-            if transfer["status"] != "returned" and _simulate_settlement():
+            if transfer.get("status") == "pending_submission" and _simulate_settlement():
                 transfer = client.settle_in_sandbox(payment.transfer_id)
+            elif transfer.get("status") == "submitted" and _simulate_settlement():
+                transfer = client.settle_in_sandbox(payment.transfer_id)
+            provider_state = transfer.get("status")
             current = payment.model_copy(update={"status": payment_status(transfer)})
-            txns = client.bank_txns()
+            txns = client.bank_txns(
+                known_keys={payment.transfer_id: payment.idempotency_key}, resolve_unknown=False
+            )
         finally:
             client.close()
 
@@ -328,7 +350,9 @@ def reconcile(invoice: Invoice, ctx: PipelineContext) -> Invoice:
     )
     if current.status == "returned" or return_line is not None:
         returned = current.model_copy(update={"status": "returned"})
-        note = "payment returned" + (f" ({return_line.id})" if return_line else "")
+        note = f"payment {provider_state or 'returned'}" + (
+            f" ({return_line.id})" if return_line else ""
+        )
         out = transition(
             invoice.model_copy(update={"payment": returned}), "approved", "reconcile", note
         )
@@ -345,11 +369,16 @@ def reconcile(invoice: Invoice, ctx: PipelineContext) -> Invoice:
         )
         return out
 
+    # Increase posts the debit line at submission, before settlement. Only a
+    # settled transfer is reconciled; a submitted one stays paid and waits.
+    settled_enough = payment.provider != "increase" or current.status == "settled"
     txn = next(
         (
             t
             for t in txns
-            if t.reference == payment.idempotency_key and t.amount_cents == -payment.amount_cents
+            if settled_enough
+            and t.reference == payment.idempotency_key
+            and t.amount_cents == -payment.amount_cents
         ),
         None,
     )

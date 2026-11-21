@@ -48,7 +48,7 @@ class PrismConfig:
     @classmethod
     def from_env(cls) -> PrismConfig | None:
         """None when Prism is not configured; callers then skip it entirely."""
-        api_key = os.environ.get("PRISMTRACE_API_KEY") or os.environ.get("PRISM_API_KEY")
+        api_key = os.environ.get("PRISMTRACE_API_KEY")
         project_id = os.environ.get("PRISMTRACE_PROJECT_ID")
         if not api_key or not project_id:
             return None
@@ -122,7 +122,11 @@ class PrismClient:
         if response.status_code != 200:
             log.warning("prism evaluate HTTP %s: %s", response.status_code, response.text[:200])
             return Verdict.skipped(f"http_{response.status_code}")
-        data = response.json()
+        try:
+            data = response.json()
+        except ValueError:
+            log.warning("prism evaluate returned non-JSON: %s", response.text[:100])
+            return Verdict.skipped("malformed_response")
         if not isinstance(data, dict) or "blocked" not in data:
             return Verdict.skipped("malformed_response")
         return Verdict(
@@ -171,6 +175,7 @@ class PrismClient:
 
 _override: PrismClient | None = None
 _override_set = False
+_cached: tuple[PrismConfig, PrismClient] | None = None
 
 
 def configure_prism(client: PrismClient | None) -> None:
@@ -187,11 +192,22 @@ def reset_prism() -> None:
 
 
 def prism_client() -> PrismClient | None:
-    """The client the stages should use right now, or None when Prism is off."""
+    """The client the stages should use right now, or None when Prism is off.
+
+    One client (one connection pool) is kept per configuration, so the evaluate
+    and trace calls of a payment reuse a connection and nothing leaks per call.
+    """
+    global _cached
     if _override_set:
         return _override
     config = PrismConfig.from_env()
-    return PrismClient(config) if config else None
+    if config is None:
+        return None
+    if _cached is None or _cached[0] != config:
+        if _cached is not None:
+            _cached[1].close()
+        _cached = (config, PrismClient(config))
+    return _cached[1]
 
 
 class Stopwatch:

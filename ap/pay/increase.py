@@ -55,8 +55,7 @@ class IncreaseClient:
         transport: httpx.BaseTransport | None = None,
         timeout: float = 20.0,
     ) -> None:
-        if httpx.URL(base_url).host != SANDBOX_HOST:
-            raise SandboxRequired(f"INCREASE_BASE_URL must be https://{SANDBOX_HOST}")
+        self.require_sandbox(base_url)
         if not api_key:
             raise IncreaseError("INCREASE_API_KEY is not set")
         self.account_id = account_id
@@ -68,12 +67,23 @@ class IncreaseClient:
         )
         self._idempotency_keys: dict[str, str | None] = {}
 
+    @staticmethod
+    def require_sandbox(base_url: str) -> None:
+        """The one place that decides what counts as the sandbox. Unset is not it."""
+        try:
+            host = httpx.URL(base_url).host if base_url else ""
+        except Exception as exc:  # noqa: BLE001 - an unparsable URL is not the sandbox
+            raise SandboxRequired(f"INCREASE_BASE_URL is not a URL: {exc}") from exc
+        if host != SANDBOX_HOST:
+            raise SandboxRequired(f"INCREASE_BASE_URL must be https://{SANDBOX_HOST}")
+
     @classmethod
     def from_env(cls, transport: httpx.BaseTransport | None = None) -> IncreaseClient:
+        """Build from INCREASE_*; the base URL is required and must be the sandbox."""
         return cls(
             api_key=os.environ.get("INCREASE_API_KEY", ""),
             account_id=os.environ.get("INCREASE_ACCOUNT_ID", ""),
-            base_url=os.environ.get("INCREASE_BASE_URL", f"https://{SANDBOX_HOST}"),
+            base_url=os.environ.get("INCREASE_BASE_URL", ""),
             transport=transport,
         )
 
@@ -90,10 +100,18 @@ class IncreaseClient:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        response = self._http.request(method, path, json=json, params=params, headers=headers)
+        try:
+            response = self._http.request(method, path, json=json, params=params, headers=headers)
+        except httpx.HTTPError as exc:
+            raise IncreaseError(f"{method} {path} failed: {exc!r}") from exc
         if response.status_code >= 400:
             raise IncreaseError(f"{method} {path} -> {response.status_code}: {response.text[:300]}")
-        return cast(dict[str, Any], response.json())
+        try:
+            return cast(dict[str, Any], response.json())
+        except ValueError as exc:
+            raise IncreaseError(
+                f"{method} {path} returned non-JSON: {response.text[:100]}"
+            ) from exc
 
     # -- transfers -----------------------------------------------------------
 
@@ -174,13 +192,21 @@ class IncreaseClient:
             )
         return self._idempotency_keys[transfer_id]
 
-    def bank_txns(self) -> list[BankTxn]:
+    def bank_txns(
+        self, known_keys: dict[str, str] | None = None, resolve_unknown: bool = True
+    ) -> list[BankTxn]:
         """The account's transactions in the contract's statement shape.
 
         ``reference`` carries the originating transfer's idempotency key, which
         is how ``reconcile`` ties a statement line to a payment. A return shows
         up as a second, positive line with the same reference.
+
+        ``known_keys`` maps transfer id to idempotency key for transfers the
+        caller already knows, so no lookup is needed for them. With
+        ``resolve_unknown`` False, other transfers get ``reference=None`` instead
+        of one GET each; reconciling one invoice only needs its own key.
         """
+        self._idempotency_keys.update(known_keys or {})
         out: list[BankTxn] = []
         for txn in self.list_transactions():
             source = txn.get("source") or {}
@@ -188,7 +214,7 @@ class IncreaseClient:
             reference: str | None = None
             if category in ("ach_transfer_intention", "ach_transfer_return"):
                 transfer_id = (source.get(category) or {}).get("transfer_id")
-                if transfer_id:
+                if transfer_id and (resolve_unknown or transfer_id in self._idempotency_keys):
                     reference = self._idempotency_key_of(transfer_id)
             out.append(
                 BankTxn(
@@ -280,21 +306,24 @@ class IncreaseClient:
         )
 
 
+# Transfer states in which the money never reached, or came back from, the payee.
+# The contract has one word for all of them: "returned", which sends the invoice
+# back to approved so it can be paid again.
+FAILED_TRANSFER_STATES = frozenset({"returned", "rejected", "canceled"})
+
+
 def payment_status(transfer: dict[str, Any]) -> PaymentStatus:
-    """Map an Increase ACH transfer to the contract's payment status."""
-    status = transfer["status"]
-    if status == "returned":
+    """Map an Increase ACH transfer to the contract's payment status. Total: never raises.
+
+    ``requires_attention`` and any state this code does not know stay ``pending``;
+    reconcile keeps the invoice ``paid`` and the transfer id until Increase moves on.
+    """
+    status = transfer.get("status")
+    if status in FAILED_TRANSFER_STATES:
         return "returned"
     if status == "submitted":
         return "settled" if transfer.get("settlement") else "submitted"
-    if status in (
-        "pending_submission",
-        "pending_approval",
-        "pending_reviewing",
-        "pending_transfer_session_confirmation",
-    ):
-        return "pending"
-    raise IncreaseError(f"transfer {transfer.get('id')} ended as {status}")
+    return "pending"
 
 
 def pay_with_increase(
@@ -318,8 +347,8 @@ def pay_with_increase(
     finally:
         if own:
             client.close()
-    if int(transfer["amount"]) != invoice.total_cents:
-        raise IncreaseError("Increase echoed a different amount than requested")
+    # The transfer exists now, whatever its state: always hand back its id so the
+    # invoice carries the record and a retry can never create a second one.
     return Payment(
         provider="increase",
         transfer_id=transfer["id"],

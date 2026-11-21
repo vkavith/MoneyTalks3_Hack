@@ -130,7 +130,24 @@ def test_plan_not_entitled_is_not_a_block(approved_small: Invoice, ctx: Pipeline
     assert pay(approved_small, ctx).status == "paid"
 
 
-def test_disabled_without_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_non_json_200_fails_open(approved_small: Invoice, ctx: PipelineContext) -> None:
+    def maintenance(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>be right back</html>")
+
+    client = PrismClient(
+        PrismConfig("https://prism.test", "proj-1", "pt-sk-test"),
+        transport=httpx.MockTransport(maintenance),
+    )
+    configure_prism(client)
+    assert client.evaluate("t", [{"role": "user", "content": "x"}]) == Verdict.skipped(
+        "malformed_response"
+    )
+    assert pay(approved_small, ctx).status == "paid"
+
+
+def test_disabled_without_configuration_and_one_client_per_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from ap.pay.prism import reset_prism
 
     reset_prism()
@@ -141,4 +158,8 @@ def test_disabled_without_configuration(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setenv("PRISMTRACE_PROJECT_ID", "p")
     client = prism_client()
     assert client is not None and client.config.host == "https://api.prism.blockconvey.com"
-    client.close()
+    assert prism_client() is client, "same configuration, same client, no leak per call"
+    monkeypatch.setenv("PRISMTRACE_PROJECT_ID", "q")
+    other = prism_client()
+    assert other is not None and other is not client
+    other.close()

@@ -16,7 +16,6 @@ from ap.shared.load import load_captured_fixture, load_context
 def quiet_environment(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.delenv("PAYMENT_PROVIDER", raising=False)
     monkeypatch.delenv("PRISMTRACE_API_KEY", raising=False)
-    monkeypatch.delenv("PRISM_API_KEY", raising=False)
     monkeypatch.delenv("PRISMTRACE_PROJECT_ID", raising=False)
     configure_prism(None)
     yield

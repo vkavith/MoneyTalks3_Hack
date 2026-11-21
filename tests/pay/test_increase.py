@@ -125,13 +125,95 @@ def test_client_refuses_non_sandbox_hosts() -> None:
         IncreaseClient("k", "a", base_url="https://sandbox.increase.com.attacker.example")
 
 
-def test_payment_status_mapping() -> None:
+def test_payment_status_mapping_is_total() -> None:
     assert payment_status({"status": "pending_submission"}) == "pending"
+    assert payment_status({"status": "requires_attention"}) == "pending"
+    assert payment_status({"status": "something_new"}) == "pending"
     assert payment_status({"status": "submitted", "settlement": None}) == "submitted"
     assert payment_status({"status": "submitted", "settlement": {"settled_at": "x"}}) == "settled"
     assert payment_status({"status": "returned"}) == "returned"
+    assert payment_status({"status": "rejected"}) == "returned"
+    assert payment_status({"status": "canceled"}) == "returned"
+
+
+def test_rejected_transfer_goes_back_to_approved(
+    fake: FakeIncrease, approved_small: Invoice, ctx: PipelineContext
+) -> None:
+    paid = pay(approved_small, ctx)
+    assert paid.payment is not None
+    fake.transfers[paid.payment.transfer_id]["status"] = "rejected"
+    back = reconcile(paid, ctx)
+    assert back.status == "approved"
+    assert back.payment is not None and back.payment.status == "returned"
+    assert "rejected" in (back.history[-1].note or "")
+    repaid = pay(back, ctx)
+    assert repaid.payment is not None and repaid.payment.idempotency_key == "ap-INV-0001-2"
+
+
+def test_submitted_but_unsettled_transfer_is_not_reconciled(
+    fake: FakeIncrease,
+    approved_small: Invoice,
+    ctx: PipelineContext,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("INCREASE_SIMULATE_SETTLEMENT", "0")
+    paid = pay(approved_small, ctx)
+    assert paid.payment is not None
+    client = IncreaseClient("test-sandbox-key", "account_test", transport=fake.transport)
+    client.simulate_submit(paid.payment.transfer_id)
+    # Give it a debit line without settlement, as Increase does at submission.
+    fake.transactions.append(
+        {
+            "id": "transaction_early",
+            "amount": -paid.payment.amount_cents,
+            "created_at": "2026-11-21T12:01:30Z",
+            "description": "ACH transfer",
+            "source": {
+                "category": "ach_transfer_intention",
+                "ach_transfer_intention": {"transfer_id": paid.payment.transfer_id},
+            },
+        }
+    )
+    waiting = reconcile(paid, ctx)
+    assert waiting.status == "paid"
+    assert waiting.payment is not None and waiting.payment.status == "submitted"
+    assert waiting.reconciliation is None
+
+
+def test_re_pay_refused_unless_provider_confirms_the_failure(
+    fake: FakeIncrease, approved_small: Invoice, ctx: PipelineContext
+) -> None:
+    """A tampered 'returned' flag on our side must not buy a second transfer."""
+    from ap.shared import transition
+
+    paid = pay(approved_small, ctx)
+    assert paid.payment is not None
+    forged = transition(
+        paid.model_copy(update={"payment": paid.payment.model_copy(update={"status": "returned"})}),
+        "approved",
+        "test",
+    )
+    with pytest.raises(PaymentRefused) as info:
+        pay(forged, ctx)
+    assert info.value.guardrail == "double_payment"
+    assert len(fake.transfers) == 1
+
+
+def test_transport_errors_become_increase_errors() -> None:
+    def down(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("boom", request=request)
+
+    client = IncreaseClient("k", "a", transport=httpx.MockTransport(down))
     with pytest.raises(increase_module.IncreaseError):
-        payment_status({"status": "rejected", "id": "t"})
+        client.get_transfer("ach_transfer_x")
+
+
+def test_from_env_requires_an_explicit_sandbox_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INCREASE_API_KEY", "k")
+    monkeypatch.setenv("INCREASE_ACCOUNT_ID", "a")
+    monkeypatch.delenv("INCREASE_BASE_URL", raising=False)
+    with pytest.raises(SandboxRequired):
+        IncreaseClient.from_env()
 
 
 def test_bank_txns_carry_the_idempotency_key(

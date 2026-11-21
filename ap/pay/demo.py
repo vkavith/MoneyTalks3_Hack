@@ -17,8 +17,10 @@ import os
 import sys
 from pathlib import Path
 
-from ap.shared import HumanDecision, Invoice, PipelineContext, transition
-from ap.shared.load import load_captured_fixture, load_context
+from ap.intake import capture
+from ap.match import match
+from ap.shared import HumanDecision, Invoice, PipelineContext
+from ap.shared.load import load_context
 
 from . import PaymentRefused, approve, pay, reconcile
 from .increase import IncreaseClient
@@ -57,14 +59,17 @@ def show(invoice: Invoice) -> None:
         )
 
 
-def matched(invoice_id: str) -> Invoice:
-    """The captured fixture moved to matched, standing in for lanes 1 and 2."""
-    inv = load_captured_fixture(f"{invoice_id}.pdf")
-    return transition(inv, "matched", "demo:lane3", "stand-in for match()")
+def matched(invoice_id: str, ctx: PipelineContext) -> Invoice:
+    """Run lanes 1 and 2 (capture, 3-way match) on the inbox PDF."""
+    inv = match(capture(f"{invoice_id}.pdf"), ctx)
+    if inv.status != "matched":
+        codes = ",".join(e.code for e in inv.match.exceptions) if inv.match else "?"
+        raise SystemExit(f"{invoice_id} did not match ({codes}); pick a clean invoice")
+    return inv
 
 
 def approved(invoice_id: str, ctx: PipelineContext, approver: str | None) -> Invoice:
-    inv = approve(matched(invoice_id), ctx)
+    inv = approve(matched(invoice_id, ctx), ctx)
     if inv.status != "approved" and approver:
         human = HumanDecision(approver=approver, decision="approved", reason="Approved in the demo")
         inv = approve(inv, ctx, human)
@@ -121,7 +126,7 @@ def cmd_refuse(args: argparse.Namespace) -> int:
     ctx = load_context()
     inv = approved(args.invoice, ctx, args.approve)
     attempts = {
-        "not approved": matched(args.invoice),
+        "not approved": matched(args.invoice, ctx),
         "over the single-payment limit": inv.model_copy(
             update={"total_cents": ctx.policy.max_single_payment_cents + 1}
         ),
