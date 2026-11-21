@@ -26,7 +26,7 @@ python scripts/seed.py                             # regenerate data/ (lane 4 on
 
 Keys never go in the repo (see [AGENTS.md](AGENTS.md)). Every key the project uses is named in `.env.example`; the values live in each person's git-ignored `.env`.
 
-The shared hackathon keys (Nicrron and Prism) are held by Dylan. Ask in the team chat and paste them into your `.env` under `NICRRON_API_KEY` and `PRISM_API_KEY`. Both keys are revoked after the event.
+The agents call LLMs through [Nicrron](https://nicrron.ai), an OpenAI-compatible gateway: point the OpenAI SDK at `NICRRON_BASE_URL` with `NICRRON_API_KEY` and use provider-prefixed model names such as `anthropic/claude-sonnet-5-5`. Dylan holds the shared Nicrron and Prism keys; ask in the team chat and paste them into your `.env`. Both keys are revoked after the event.
 
 ## Who does what
 
