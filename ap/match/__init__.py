@@ -1,17 +1,13 @@
-"""LANE 2.
-
-match(): a working deterministic baseline. Extend it, keep the signature.
-resolve_exception(): STUB that escalates everything. This is where the agent goes.
-"""
+"""Deterministic invoice matching and exception review."""
 
 from __future__ import annotations
 
+from ap.match.investigation import investigate
 from ap.shared import (
     Invoice,
     MatchException,
     MatchResult,
     PipelineContext,
-    Resolution,
     now_utc,
     transition,
 )
@@ -129,11 +125,7 @@ def match(invoice: Invoice, ctx: PipelineContext) -> Invoice:
 def resolve_exception(invoice: Invoice, ctx: PipelineContext) -> Invoice:
     if invoice.status != "exception" or invoice.match is None:
         return invoice
-    resolution = Resolution(
-        action="escalated",
-        rationale="Stub: no exception agent yet, so everything goes to a person.",
-        by="resolve-stub",
-    )
+    resolution = investigate(invoice, ctx, invoice.match.exceptions)
     return invoice.model_copy(
         update={"match": invoice.match.model_copy(update={"resolution": resolution})}
     )
