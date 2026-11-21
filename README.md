@@ -32,10 +32,10 @@ The agents call LLMs through [Nicrron](https://nicrron.ai), an OpenAI-compatible
 
 | Lane | Owner | Builds | Brief |
 |---|---|---|---|
-| 1 Intake | _name_ | Invoice PDF to a structured `Invoice` | [docs/lanes/1-intake.md](docs/lanes/1-intake.md) |
-| 2 Match & exceptions | _name_ | 3-way match and the agent that resolves mismatches | [docs/lanes/2-match.md](docs/lanes/2-match.md) |
-| 3 Approve & pay | _name_ | Approval rules, sandbox payment, reconciliation | [docs/lanes/3-pay.md](docs/lanes/3-pay.md) |
-| 4 Orchestration & demo | _name_ | API, UI, audit trail, pitch; owns `main` and the contract | [docs/lanes/4-orchestration-demo.md](docs/lanes/4-orchestration-demo.md) |
+| 1 Intake | George | Invoice PDF to a structured `Invoice` | [docs/lanes/1-intake.md](docs/lanes/1-intake.md) |
+| 2 Match & exceptions | Vikram | 3-way match and the agent that resolves mismatches | [docs/lanes/2-match.md](docs/lanes/2-match.md) |
+| 3 Approve & pay | Dylan | Approval rules, sandbox payment, reconciliation | [docs/lanes/3-pay.md](docs/lanes/3-pay.md) |
+| 4 Orchestration & demo | Vakitah | API, UI, audit trail, pitch; owns `main` and the contract | [docs/lanes/4-orchestration-demo.md](docs/lanes/4-orchestration-demo.md) |
 
 Each brief ends with a kickoff prompt to paste into your coding agent.
 
