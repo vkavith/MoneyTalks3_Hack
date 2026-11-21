@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Invoice processing: PO to payment</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Invoice processing: PO to payment</h1>
+      <p class="tagline">Pay only what was ordered, received and approved.</p>
+    </div>
+    <span class="badge">SANDBOX · no real money</span>
+  </header>
+
+  <div class="toolbar">
+    <button id="process">Process inbox</button>
+    <button id="reset" class="secondary">Reset demo</button>
+    <span class="legend"><i class="doc"></i> documents compared &nbsp; <i class="human"></i> humans step in</span>
+  </div>
+
+  <main>
+    <section id="board" class="board"></section>
+    <aside>
+      <h2>Approval queue</h2>
+      <div id="queue"></div>
+      <h2>Invoice detail</h2>
+      <div id="detail" class="muted">Select an invoice.</div>
+    </aside>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

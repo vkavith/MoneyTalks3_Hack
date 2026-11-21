@@ -1,0 +1,29 @@
+body { font-family: system-ui, sans-serif; margin: 0; background: #fafafa; color: #222; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #fff; border-bottom: 1px solid #ddd; }
+h1 { margin: 0; font-size: 24px; }
+.tagline { margin: 4px 0 0; color: #555; }
+.badge { background: #ffe9a8; border: 1px solid #e0b400; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 12px; }
+.toolbar { padding: 12px 24px; display: flex; gap: 8px; align-items: center; }
+button { background: #2f6fde; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+button.secondary { background: #888; }
+button.reject { background: #c0392b; }
+.legend { margin-left: auto; font-size: 12px; color: #555; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; }
+.legend .doc { background: #6aa8f0; }
+.legend .human { background: #f5d311; }
+main { display: grid; grid-template-columns: 1fr 380px; gap: 16px; padding: 0 24px 24px; }
+.board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.phase { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px; min-height: 300px; }
+.phase h3 { font-size: 13px; margin: 0 0 8px; color: #555; }
+.card { background: #eee; border-radius: 6px; padding: 8px; margin-bottom: 8px; cursor: pointer; font-size: 13px; }
+.card.doc { background: #6aa8f0; color: #fff; }
+.card.human { background: #f5d311; }
+.card.exception { border-left: 4px solid #e8913c; }
+.card .status { font-size: 11px; text-transform: uppercase; opacity: .8; }
+aside { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px; overflow: auto; max-height: 85vh; }
+aside h2 { font-size: 15px; margin: 8px 0; }
+.muted { color: #888; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+td, th { border-bottom: 1px solid #eee; padding: 3px; text-align: left; }
+.timeline li { font-size: 12px; margin-bottom: 4px; }
+.queue-item { border: 1px solid #f5d311; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
