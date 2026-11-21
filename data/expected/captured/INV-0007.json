@@ -1,0 +1,37 @@
+{
+  "id": "INV-0007",
+  "source_file": "INV-0007.pdf",
+  "vendor_id": "V-003",
+  "vendor_name": "Brightline Logistics Inc.",
+  "po_id": "PO-1005",
+  "invoice_number": "BL-5507",
+  "invoice_date": "2026-10-23",
+  "due_date": "2026-11-07",
+  "currency": "USD",
+  "lines": [
+    {
+      "line_no": 1,
+      "po_line_no": 1,
+      "description": "Pallet freight, regional",
+      "qty": 10,
+      "unit_price_cents": 25200,
+      "amount_cents": 252000
+    }
+  ],
+  "subtotal_cents": 252000,
+  "tax_cents": 0,
+  "total_cents": 252000,
+  "remit_to": {
+    "routing_number": "101050001",
+    "account_number": "987650003"
+  },
+  "status": "captured",
+  "history": [
+    {
+      "at": "2026-10-23T15:00:00.000Z",
+      "from": "received",
+      "to": "captured",
+      "actor": "seed"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+[
+  {
+    "id": "GR-2001",
+    "po_id": "PO-1001",
+    "received_at": "2026-10-14",
+    "lines": [
+      {
+        "po_line_no": 1,
+        "qty_received": 500
+      },
+      {
+        "po_line_no": 2,
+        "qty_received": 200
+      }
+    ]
+  },
+  {
+    "id": "GR-2002",
+    "po_id": "PO-1002",
+    "received_at": "2026-10-16",
+    "lines": [
+      {
+        "po_line_no": 1,
+        "qty_received": 40
+      }
+    ]
+  },
+  {
+    "id": "GR-2003",
+    "po_id": "PO-1003",
+    "received_at": "2026-10-20",
+    "lines": [
+      {
+        "po_line_no": 1,
+        "qty_received": 60
+      }
+    ]
+  },
+  {
+    "id": "GR-2004",
+    "po_id": "PO-1004",
+    "received_at": "2026-10-21",
+    "lines": [
+      {
+        "po_line_no": 1,
+        "qty_received": 80
+      }
+    ]
+  },
+  {
+    "id": "GR-2005",
+    "po_id": "PO-1005",
+    "received_at": "2026-10-22",
+    "lines": [
+      {
+        "po_line_no": 1,
+        "qty_received": 10
+      }
+    ]
+  }
+]

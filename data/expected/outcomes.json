@@ -1,0 +1,76 @@
+[
+  {
+    "invoice_id": "INV-0001",
+    "scenario": "Clean match, under the limit",
+    "demo": "A: touchless, straight through to paid",
+    "match_outcome": "matched",
+    "exception_codes": [],
+    "resting_status": "reconciled"
+  },
+  {
+    "invoice_id": "INV-0002",
+    "scenario": "Unit price 5% above PO",
+    "demo": "B: agent explains and resolves or escalates",
+    "match_outcome": "exception",
+    "exception_codes": [
+      "PRICE_VARIANCE"
+    ],
+    "resting_status": "exception"
+  },
+  {
+    "invoice_id": "INV-0003",
+    "scenario": "Clean match, $48,000 is over the auto-approve limit",
+    "demo": "C: pauses for a human click, then pays",
+    "match_outcome": "matched",
+    "exception_codes": [],
+    "resting_status": "matched"
+  },
+  {
+    "invoice_id": "INV-0004",
+    "scenario": "Billed 100, only 80 received",
+    "demo": null,
+    "match_outcome": "exception",
+    "exception_codes": [
+      "QTY_OVER_RECEIPT"
+    ],
+    "resting_status": "exception"
+  },
+  {
+    "invoice_id": "INV-0005",
+    "scenario": "Second copy of INV-0001",
+    "demo": null,
+    "match_outcome": "exception",
+    "exception_codes": [
+      "DUPLICATE_INVOICE"
+    ],
+    "resting_status": "exception"
+  },
+  {
+    "invoice_id": "INV-0006",
+    "scenario": "No PO number on the invoice",
+    "demo": null,
+    "match_outcome": "exception",
+    "exception_codes": [
+      "MISSING_PO"
+    ],
+    "resting_status": "exception"
+  },
+  {
+    "invoice_id": "INV-0007",
+    "scenario": "Unit price 0.8% above PO, inside tolerance",
+    "demo": null,
+    "match_outcome": "matched",
+    "exception_codes": [],
+    "resting_status": "reconciled"
+  },
+  {
+    "invoice_id": "INV-0008",
+    "scenario": "Look-alike vendor name with different bank details",
+    "demo": null,
+    "match_outcome": "exception",
+    "exception_codes": [
+      "UNKNOWN_VENDOR"
+    ],
+    "resting_status": "exception"
+  }
+]

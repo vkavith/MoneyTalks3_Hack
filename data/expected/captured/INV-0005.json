@@ -1,0 +1,45 @@
+{
+  "id": "INV-0005",
+  "source_file": "INV-0005.pdf",
+  "vendor_id": "V-001",
+  "vendor_name": "Northwind Packaging LLC",
+  "po_id": "PO-1001",
+  "invoice_number": "NW-88213",
+  "invoice_date": "2026-10-15",
+  "due_date": "2026-11-14",
+  "currency": "USD",
+  "lines": [
+    {
+      "line_no": 1,
+      "po_line_no": 1,
+      "description": "Corrugated shipping box 12in",
+      "qty": 500,
+      "unit_price_cents": 120,
+      "amount_cents": 60000
+    },
+    {
+      "line_no": 2,
+      "po_line_no": 2,
+      "description": "Packing tape 2in, roll",
+      "qty": 200,
+      "unit_price_cents": 350,
+      "amount_cents": 70000
+    }
+  ],
+  "subtotal_cents": 130000,
+  "tax_cents": 0,
+  "total_cents": 130000,
+  "remit_to": {
+    "routing_number": "101050001",
+    "account_number": "987650001"
+  },
+  "status": "captured",
+  "history": [
+    {
+      "at": "2026-10-15T15:00:00.000Z",
+      "from": "received",
+      "to": "captured",
+      "actor": "seed"
+    }
+  ]
+}
