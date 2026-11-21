@@ -1,0 +1,37 @@
+{
+  "id": "INV-0004",
+  "source_file": "INV-0004.pdf",
+  "vendor_id": "V-005",
+  "vendor_name": "Harbor Electrical Wholesale",
+  "po_id": "PO-1004",
+  "invoice_number": "HE-7730",
+  "invoice_date": "2026-10-22",
+  "due_date": "2026-11-21",
+  "currency": "USD",
+  "lines": [
+    {
+      "line_no": 1,
+      "po_line_no": 1,
+      "description": "LED panel light 2x4",
+      "qty": 100,
+      "unit_price_cents": 4200,
+      "amount_cents": 420000
+    }
+  ],
+  "subtotal_cents": 420000,
+  "tax_cents": 0,
+  "total_cents": 420000,
+  "remit_to": {
+    "routing_number": "101050001",
+    "account_number": "987650005"
+  },
+  "status": "captured",
+  "history": [
+    {
+      "at": "2026-10-22T15:00:00.000Z",
+      "from": "received",
+      "to": "captured",
+      "actor": "seed"
+    }
+  ]
+}

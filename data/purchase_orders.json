@@ -1,0 +1,94 @@
+[
+  {
+    "id": "PO-1001",
+    "vendor_id": "V-001",
+    "cost_center": "OPS-110",
+    "requester": "Priya Raman",
+    "created_at": "2026-10-01",
+    "currency": "USD",
+    "lines": [
+      {
+        "line_no": 1,
+        "sku": "BOX-12",
+        "description": "Corrugated shipping box 12in",
+        "qty": 500,
+        "unit_price_cents": 120
+      },
+      {
+        "line_no": 2,
+        "sku": "TAPE-2",
+        "description": "Packing tape 2in, roll",
+        "qty": 200,
+        "unit_price_cents": 350
+      }
+    ]
+  },
+  {
+    "id": "PO-1002",
+    "vendor_id": "V-002",
+    "cost_center": "MFG-220",
+    "requester": "Tomás Ibarra",
+    "created_at": "2026-10-03",
+    "currency": "USD",
+    "lines": [
+      {
+        "line_no": 1,
+        "sku": "GLV-CS",
+        "description": "Cut-resistant safety gloves, case",
+        "qty": 40,
+        "unit_price_cents": 8500
+      }
+    ]
+  },
+  {
+    "id": "PO-1003",
+    "vendor_id": "V-004",
+    "cost_center": "FAC-300",
+    "requester": "Hannah Okafor",
+    "created_at": "2026-10-05",
+    "currency": "USD",
+    "lines": [
+      {
+        "line_no": 1,
+        "sku": "DSK-SS",
+        "description": "Sit-stand desk, 60in",
+        "qty": 60,
+        "unit_price_cents": 80000
+      }
+    ]
+  },
+  {
+    "id": "PO-1004",
+    "vendor_id": "V-005",
+    "cost_center": "FAC-300",
+    "requester": "Hannah Okafor",
+    "created_at": "2026-10-08",
+    "currency": "USD",
+    "lines": [
+      {
+        "line_no": 1,
+        "sku": "LED-P24",
+        "description": "LED panel light 2x4",
+        "qty": 100,
+        "unit_price_cents": 4200
+      }
+    ]
+  },
+  {
+    "id": "PO-1005",
+    "vendor_id": "V-003",
+    "cost_center": "OPS-110",
+    "requester": "Priya Raman",
+    "created_at": "2026-10-10",
+    "currency": "USD",
+    "lines": [
+      {
+        "line_no": 1,
+        "sku": "FRT-PLT",
+        "description": "Pallet freight, regional",
+        "qty": 10,
+        "unit_price_cents": 25000
+      }
+    ]
+  }
+]

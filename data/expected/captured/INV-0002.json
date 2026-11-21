@@ -1,0 +1,37 @@
+{
+  "id": "INV-0002",
+  "source_file": "INV-0002.pdf",
+  "vendor_id": "V-002",
+  "vendor_name": "Cascade Industrial Supply",
+  "po_id": "PO-1002",
+  "invoice_number": "CI-40117",
+  "invoice_date": "2026-10-17",
+  "due_date": "2026-11-16",
+  "currency": "USD",
+  "lines": [
+    {
+      "line_no": 1,
+      "po_line_no": 1,
+      "description": "Cut-resistant safety gloves, case",
+      "qty": 40,
+      "unit_price_cents": 8925,
+      "amount_cents": 357000
+    }
+  ],
+  "subtotal_cents": 357000,
+  "tax_cents": 0,
+  "total_cents": 357000,
+  "remit_to": {
+    "routing_number": "101050001",
+    "account_number": "987650002"
+  },
+  "status": "captured",
+  "history": [
+    {
+      "at": "2026-10-17T15:00:00.000Z",
+      "from": "received",
+      "to": "captured",
+      "actor": "seed"
+    }
+  ]
+}

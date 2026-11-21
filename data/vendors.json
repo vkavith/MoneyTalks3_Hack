@@ -1,0 +1,57 @@
+[
+  {
+    "id": "V-001",
+    "name": "Northwind Packaging LLC",
+    "email": "ar@northwind-packaging.example.com",
+    "payment_terms_days": 30,
+    "bank": {
+      "routing_number": "101050001",
+      "account_number": "987650001"
+    },
+    "active": true
+  },
+  {
+    "id": "V-002",
+    "name": "Cascade Industrial Supply",
+    "email": "billing@cascade-industrial.example.com",
+    "payment_terms_days": 30,
+    "bank": {
+      "routing_number": "101050001",
+      "account_number": "987650002"
+    },
+    "active": true
+  },
+  {
+    "id": "V-003",
+    "name": "Brightline Logistics Inc.",
+    "email": "invoices@brightline-logistics.example.com",
+    "payment_terms_days": 15,
+    "bank": {
+      "routing_number": "101050001",
+      "account_number": "987650003"
+    },
+    "active": true
+  },
+  {
+    "id": "V-004",
+    "name": "Summit Office Furnishings",
+    "email": "accounts@summit-office.example.com",
+    "payment_terms_days": 45,
+    "bank": {
+      "routing_number": "101050001",
+      "account_number": "987650004"
+    },
+    "active": true
+  },
+  {
+    "id": "V-005",
+    "name": "Harbor Electrical Wholesale",
+    "email": "ar@harbor-electrical.example.com",
+    "payment_terms_days": 30,
+    "bank": {
+      "routing_number": "101050001",
+      "account_number": "987650005"
+    },
+    "active": true
+  }
+]

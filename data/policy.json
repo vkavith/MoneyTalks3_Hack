@@ -1,0 +1,16 @@
+{
+  "auto_approve_limit_cents": 1000000,
+  "max_single_payment_cents": 10000000,
+  "price_tolerance_pct": 2,
+  "qty_tolerance_pct": 0,
+  "tiers": [
+    {
+      "up_to_cents": 5000000,
+      "approver_role": "finance_manager"
+    },
+    {
+      "up_to_cents": null,
+      "approver_role": "cfo"
+    }
+  ]
+}

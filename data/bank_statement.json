@@ -1,0 +1,37 @@
+[
+  {
+    "id": "BT-9001",
+    "posted_at": "2026-11-10",
+    "description": "ACH NORTHWIND PACKAGING",
+    "amount_cents": -130000,
+    "reference": "ap-INV-0001"
+  },
+  {
+    "id": "BT-9002",
+    "posted_at": "2026-11-10",
+    "description": "ACH BRIGHTLINE LOGISTICS",
+    "amount_cents": -252000,
+    "reference": "ap-INV-0007"
+  },
+  {
+    "id": "BT-9003",
+    "posted_at": "2026-11-12",
+    "description": "ACH SUMMIT OFFICE FURN",
+    "amount_cents": -4800000,
+    "reference": "ap-INV-0003"
+  },
+  {
+    "id": "BT-9004",
+    "posted_at": "2026-11-13",
+    "description": "PAYROLL",
+    "amount_cents": -1875000,
+    "reference": null
+  },
+  {
+    "id": "BT-9005",
+    "posted_at": "2026-11-13",
+    "description": "CUSTOMER DEPOSIT",
+    "amount_cents": 500000,
+    "reference": null
+  }
+]
