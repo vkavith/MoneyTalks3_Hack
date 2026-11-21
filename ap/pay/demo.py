@@ -108,11 +108,15 @@ def cmd_return(args: argparse.Namespace) -> int:
     show(inv)
     client = IncreaseClient.from_env()
     try:
-        client.settle_in_sandbox(inv.payment.transfer_id)
-        client.simulate_return(inv.payment.transfer_id, reason="account_closed")
+        state = client.get_transfer(inv.payment.transfer_id)["status"]
+        if state == "returned":
+            print("\n(Increase replayed a transfer from an earlier run that was already returned)")
+        else:
+            client.settle_in_sandbox(inv.payment.transfer_id)
+            client.simulate_return(inv.payment.transfer_id, reason="account_closed")
+            print("\n(simulated: the receiving bank returned the transfer)")
     finally:
         client.close()
-    print("\n(simulated: the receiving bank returned the transfer)")
     inv = reconcile(inv, ctx)
     show(inv)
     print("\nPaying again with a fresh idempotency key...")
