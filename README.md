@@ -22,6 +22,12 @@ python -m ruff format .                            # format before committing
 python scripts/seed.py                             # regenerate data/ (lane 4 only)
 ```
 
+## API keys
+
+Keys never go in the repo (see [AGENTS.md](AGENTS.md)). Every key the project uses is named in `.env.example`; the values live in each person's git-ignored `.env`.
+
+The shared hackathon keys (Nicrron and Prism) are held by Dylan. Ask in the team chat and paste them into your `.env` under `NICRRON_API_KEY` and `PRISM_API_KEY`. Both keys are revoked after the event.
+
 ## Who does what
 
 | Lane | Owner | Builds | Brief |
