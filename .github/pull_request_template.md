@@ -3,7 +3,7 @@
 **What changed:**
 
 **Checks**
-- [ ] `npm run check` passes locally
+- [ ] `python scripts/check.py` passes locally
 - [ ] Only touched my lane's folders (or this is a `contract:` PR approved by the lane 4 owner)
 - [ ] No secrets, no live-mode keys, no hand edits under `data/`
-- [ ] New dependencies are listed above
+- [ ] New lines in `pyproject.toml` dependencies are listed above

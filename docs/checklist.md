@@ -16,8 +16,8 @@ Things that are not code in this repo. Tick them off at kickoff.
 - [ ] Branch protection on `main`: pull request required, `check` workflow required, no force-push.
 - [ ] Sandbox payment account created; key and account ID shared through a password manager or the chat's private message, never in the repo.
 - [ ] A model API key per person, or one shared key with a spending cap.
-- [ ] Everyone has run `npm run check` on their own machine before the event starts.
-- [ ] Node 22 on every machine.
+- [ ] Everyone has run `python scripts/check.py` on their own machine before the event starts.
+- [ ] Python 3.11 or newer on every machine, with a virtual environment set up.
 
 ## Read before you build
 

@@ -36,9 +36,9 @@
   "status": "captured",
   "history": [
     {
-      "at": "2026-10-24T15:00:00.000Z",
-      "from": "received",
-      "to": "captured",
+      "at": "2026-10-24T15:00:00Z",
+      "from_status": "received",
+      "to_status": "captured",
       "actor": "seed"
     }
   ]

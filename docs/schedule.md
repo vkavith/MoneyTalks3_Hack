@@ -4,7 +4,7 @@ Assumes a 24-hour event. For a different length, keep the proportions.
 
 | When | Checkpoint | What must be true |
 |---|---|---|
-| Hour 0 to 1 | Kickoff, all four together | Lanes assigned and names written into the README. Everyone has cloned, run `npm run check` and pasted the kickoff prompt into their agent. Keys shared. Contract read aloud once; any change agreed now. |
+| Hour 0 to 1 | Kickoff, all four together | Lanes assigned and names written into the README. Everyone has cloned, run `python scripts/check.py` and pasted the kickoff prompt into their agent. Keys shared. Contract read aloud once; any change agreed now. |
 | Hour 8 | Real code in every lane | Intake reads at least the clean PDFs. The exception agent handles one code. A payment has gone through the sandbox. The UI shows the board from live data. `main` is green. |
 | Hour 16 | Feature complete | All stubs gone. Demo invoices A, B and C run from the UI. |
 | Hour 19 | Feature freeze | Bug fixes and polish only. No new dependencies, no contract changes. |

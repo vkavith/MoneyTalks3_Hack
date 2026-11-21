@@ -1,8 +1,8 @@
 {
   "auto_approve_limit_cents": 1000000,
   "max_single_payment_cents": 10000000,
-  "price_tolerance_pct": 2,
-  "qty_tolerance_pct": 0,
+  "price_tolerance_pct": 2.0,
+  "qty_tolerance_pct": 0.0,
   "tiers": [
     {
       "up_to_cents": 5000000,

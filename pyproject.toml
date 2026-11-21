@@ -1,0 +1,45 @@
+[project]
+name = "ap-agent"
+version = "0.0.0"
+description = "An agent that takes a vendor invoice from PDF to paid"
+requires-python = ">=3.11"
+# Runtime dependencies. Add yours here, one per line, and say so in your PR.
+dependencies = [
+    "pydantic>=2.7,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.10",
+    "pytest>=8",
+    "reportlab>=4",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ap*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+files = ["ap", "scripts", "tests"]
+disallow_untyped_defs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["reportlab.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

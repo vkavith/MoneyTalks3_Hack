@@ -1,21 +1,35 @@
 # The contract
 
-The code in `packages/shared/src/` is the source of truth. This page explains it.
+The code in `ap/shared/` is the source of truth. This page explains it.
+
+```python
+from ap.shared import Invoice, PipelineContext, transition, now_utc
+from ap.shared.load import load_context, list_inbox
+```
 
 ## One record
 
-A single `Invoice` object travels through the whole pipeline. Each stage takes it, adds its own section and returns a new copy.
+A single `Invoice` (a frozen Pydantic model) travels through the whole pipeline. Each stage takes it, adds its own section and returns a new copy.
 
 | Section | Written by | Contains |
 |---|---|---|
 | header and `lines` | `capture` (lane 1) | vendor, PO number, invoice number, dates, line items, totals, `remit_to` |
-| `match` | `match`, `resolveException` (lane 2) | outcome, list of exceptions, the agent's resolution |
+| `match` | `match`, `resolve_exception` (lane 2) | outcome, list of exceptions, the agent's resolution |
 | `approval` | `approve` (lane 3) | decision, approver, reason |
 | `payment` | `pay` (lane 3) | provider, transfer ID, amount, idempotency key, status |
 | `reconciliation` | `reconcile` (lane 3) | the bank line it was tied to |
 | `history` | `transition()` | every status change, with time, actor and note |
 
 `history` is the audit trail the UI shows. You get it for free by using `transition()`.
+
+Adding a section looks like this:
+
+```python
+updated = invoice.model_copy(update={"payment": payment})
+return transition(updated, "paid", "pay", payment.transfer_id)
+```
+
+`model_copy(update=...)` does not re-validate, so pass real model instances, not dicts. The orchestrator re-validates every invoice after the last stage.
 
 ## Statuses
 
@@ -33,23 +47,25 @@ received -> captured -> matched ---------> approved -> paid -> reconciled
 | `approved` | `paid` | lane 3 |
 | `paid` | `reconciled`; `approved` if the payment was returned | lane 3 |
 
-An invoice waiting for a human approver stays `matched` with `approval.decision = "pending"`.
-An invoice the agent could not resolve stays `exception` with `match.resolution.action = "escalated"`.
+An invoice waiting for a human approver stays `matched` with `approval.decision == "pending"`.
+An invoice the agent could not resolve stays `exception` with `match.resolution.action == "escalated"`.
+
+An illegal move raises `IllegalTransition`.
 
 ## Stage functions
 
-Signatures are in `packages/shared/src/stages.ts`.
+Signatures are in `ap/shared/stages.py`. All are plain synchronous functions.
 
-| Function | Package | In | Out |
+| Function | Module | In | Out |
 |---|---|---|---|
-| `capture(sourceFile)` | `@ap/intake` | file name in `data/inbox` | `captured` |
-| `match(invoice, ctx)` | `@ap/match` | `captured` | `matched` or `exception` |
-| `resolveException(invoice, ctx)` | `@ap/match` | `exception` | `matched`, or `exception` escalated |
-| `approve(invoice, ctx, human?)` | `@ap/pay` | `matched` | `approved`, `rejected`, or `matched` pending |
-| `pay(invoice, ctx)` | `@ap/pay` | `approved` | `paid` |
-| `reconcile(invoice, ctx)` | `@ap/pay` | `paid` | `reconciled`, or unchanged |
+| `capture(source_file)` | `ap.intake` | file name in `data/inbox` | `captured` |
+| `match(invoice, ctx)` | `ap.match` | `captured` | `matched` or `exception` |
+| `resolve_exception(invoice, ctx)` | `ap.match` | `exception` | `matched`, or `exception` escalated |
+| `approve(invoice, ctx, human=None)` | `ap.pay` | `matched` | `approved`, `rejected`, or `matched` pending |
+| `pay(invoice, ctx)` | `ap.pay` | `approved` | `paid` |
+| `reconcile(invoice, ctx)` | `ap.pay` | `paid` | `reconciled`, or unchanged |
 
-`ctx` is a `PipelineContext`: vendors, purchase orders, goods receipts, policy, invoices already processed, and bank statement lines.
+`ctx` is a `PipelineContext`: `vendors`, `purchase_orders`, `receipts`, `policy`, `bank_txns`, and `prior_invoices` (those already processed, for duplicate detection).
 
 ## Exception codes
 
@@ -64,11 +80,13 @@ Signatures are in `packages/shared/src/stages.ts`.
 
 ## Conventions
 
-- Money is integer cents. `total_cents: 130000` is $1,300.00.
-- Dates are `YYYY-MM-DD`. Timestamps are ISO 8601 UTC.
+- Money is integer cents. `total_cents=130000` is $1,300.00. The models reject floats.
+- Dates are `datetime.date` and appear as `YYYY-MM-DD` in JSON. Timestamps are timezone-aware UTC `datetime`; use `now_utc()`.
+- Unknown fields are rejected (`extra="forbid"`), so a typo in a field name fails loudly.
 - IDs: `V-001`, `PO-1001`, `GR-2001`, `INV-0001`, `BT-9001`.
 - Payment idempotency key: `ap-<invoice id>`. The bank line carries it in `reference`, which is how reconciliation ties them together.
-- Policy values (tolerances, approval limits) come from `data/policy.json`. Do not hard-code them.
+- Policy values (tolerances, approval limits) come from `data/policy.json` through `ctx.policy`. Do not hard-code them.
+- To send an invoice over HTTP or store it, use `invoice.model_dump(mode="json")` and `Invoice.model_validate(...)`.
 
 ## Changing it
 
